@@ -58,7 +58,7 @@ if __name__ == '__main__':
                 print('')
                 telnet.interact()
             else:
-                telnet.sendcontrol('m')         # for SNR
+                telnet.sendcontrol('j')         # for SNR
                 print('')
                 telnet.interact()
         else:
@@ -74,9 +74,9 @@ if __name__ == '__main__':
                 telnet.expect('#')
                 telnet.sendline('undo smart')
                 telnet.expect('#')
-                telnet.sendcontrol('m')
+                telnet.sendcontrol('j')
                 telnet.interact()
             else:
                 print('')
-                telnet.sendcontrol('m')
+                telnet.sendcontrol('j')
                 telnet.interact()
