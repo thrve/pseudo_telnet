@@ -31,6 +31,9 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+def default():
+    telnet.expect()
+
 
 if not re.match(re_ip, args.ip)and not re.match(re_hostname, args.ip):
     print(f'{args.ip} is invalid value for ip addres.')
@@ -80,3 +83,13 @@ if __name__ == '__main__':
                 print('')
                 telnet.sendcontrol('j')
                 telnet.interact()
+
+
+# eltex: press ENTER key to retry authentication 
+# snr: login:
+# jun: Login incorrect
+# cisco: % Authentication failed.
+# huawei: Error: Failed to authenticate.
+# olt:   Username or password invalid.
+# infinet
+# ubiq: Login incorrect
