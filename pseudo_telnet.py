@@ -15,8 +15,10 @@ con_ref = 'telnet: Unable to connect to remote host: Connection refused'
 
 
 # re variables
-re_ip = r'(:?(2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)$'
-re_hostname = r'(:?\d\d-[A-Z]+-[A-Z]+\d+-[A-Z]+-\d$)'
+
+re_ip = re.compile(r'(:?(2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)$')
+re_radio_ip = re.compile(r'10.240.(2[0-4]\d|25[0-5]|[1]?\d\d?).(2[0-4]\d|25[0-4]|[1]?\d\d?)')
+re_hostname = re.compile(r'(:?\d\d-[A-Z]+-[A-Z]+\d+-[A-Z]+-\d$)')
 
 
 parser = argparse.ArgumentParser(description='pseudo_telnet')
@@ -30,9 +32,6 @@ def signal_handler(sig, frame):
 
 
 signal.signal(signal.SIGINT, signal_handler)
-
-def default():
-    telnet.expect()
 
 
 if not re.match(re_ip, args.ip)and not re.match(re_hostname, args.ip):
@@ -48,48 +47,42 @@ else:
 if __name__ == '__main__':
 
     with pexpect.spawn(f'telnet {args.ip}') as telnet:
-        index = telnet.expect(['login', '[Uu]sername', 'User [Nn]ame:', con_ref])
-        if index == 3:
-            print(con_ref)
-            exit(0)
-        elif index == 0: 
-            telnet.sendline(username)
-            telnet.expect('assword:')
-            telnet.sendline(password)
-            index_jun= telnet.expect(['}', '#']) # for Juniper
-            if index_jun == 0: 
-                print('')
-                telnet.interact()
-            else:
-                telnet.sendcontrol('j')         # for SNR
-                print('')
-                telnet.interact()
+
+        if re.match(re_radio_ip, args.ip):
+            telnet.interact()
         else:
-            telnet.sendline(username)
-            telnet.expect('assword:')
-            telnet.sendline(password)
-            index_olt = telnet.expect(['reserved.', '>', '#'])
-            if index_olt == 0:                # for OLT Huawei
-                telnet.expect('>')
-                telnet.sendline('enable')
-                telnet.expect('#')
-                telnet.sendline('undo interactive')
-                telnet.expect('#')
-                telnet.sendline('undo smart')
-                telnet.expect('#')
-                telnet.sendcontrol('j')
-                telnet.interact()
+            index = telnet.expect(['login', '[Uu]sername', 'User [Nn]ame:', con_ref])
+            if index == 3:
+                print(con_ref)
+                exit(0)
+            elif index == 0: 
+                telnet.sendline(username)
+                telnet.expect('assword:')
+                telnet.sendline(password)
+                index_jun= telnet.expect(['}', '#']) # for Juniper
+                if index_jun == 0: 
+                    print('')
+                    telnet.interact()
+                else:
+                    telnet.sendcontrol('j')         # for SNR
+                    print('')
+                    telnet.interact()
             else:
-                print('')
-                telnet.sendcontrol('j')
-                telnet.interact()
-
-
-# eltex: press ENTER key to retry authentication 
-# snr: login:
-# jun: Login incorrect
-# cisco: % Authentication failed.
-# huawei: Error: Failed to authenticate.
-# olt:   Username or password invalid.
-# infinet
-# ubiq: Login incorrect
+                telnet.sendline(username)
+                telnet.expect('assword:')
+                telnet.sendline(password)
+                index_olt = telnet.expect(['reserved.', '>', '#'])
+                if index_olt == 0:                # for OLT Huawei
+                    telnet.expect('>')
+                    telnet.sendline('enable')
+                    telnet.expect('#')
+                    telnet.sendline('undo interactive')
+                    telnet.expect('#')
+                    telnet.sendline('undo smart')
+                    telnet.expect('#')
+                    telnet.sendcontrol('j')
+                    telnet.interact()
+                else:
+                    print('')
+                    telnet.sendcontrol('j')
+                    telnet.interact()
